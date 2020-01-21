@@ -309,7 +309,10 @@ class LiteFlowNet(torch.nn.Module):
 			tensorFlow = self.moduleRegularization[intLevel](tensorFirst[intLevel], tensorSecond[intLevel], tensorFeaturesFirst[intLevel], tensorFeaturesSecond[intLevel], tensorFlow)
 		# end
 
-		return tensorFlow * 20.0
+		# actually it should be factor 20.
+		# but somehow the output of this implementation is only half the size,
+		# that results in a scale up with a factor 2 already. so 10 is remaining
+		return tensorFlow * 10.0
 	# end
 # end
 
