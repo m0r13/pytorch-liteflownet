@@ -34,7 +34,7 @@ def Backward(tensorInput, tensorFlow):
 
 	tensorFlow = torch.cat([ tensorFlow[:, 0:1, :, :] / ((tensorInput.size(3) - 1.0) / 2.0), tensorFlow[:, 1:2, :, :] / ((tensorInput.size(2) - 1.0) / 2.0) ], 1)
 
-	return torch.nn.functional.grid_sample(input=tensorInput, grid=(Backward_tensorGrid[str(tensorFlow.size())] + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='zeros')
+	return torch.nn.functional.grid_sample(input=tensorInput, grid=(Backward_tensorGrid[str(tensorFlow.size())] + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='zeros', align_corners=True)
 # end
 
 ##########################################################
@@ -307,12 +307,13 @@ class LiteFlowNet(torch.nn.Module):
 			tensorFlow = self.moduleMatching[intLevel](tensorFirst[intLevel], tensorSecond[intLevel], tensorFeaturesFirst[intLevel], tensorFeaturesSecond[intLevel], tensorFlow)
 			tensorFlow = self.moduleSubpixel[intLevel](tensorFirst[intLevel], tensorSecond[intLevel], tensorFeaturesFirst[intLevel], tensorFeaturesSecond[intLevel], tensorFlow)
 			tensorFlow = self.moduleRegularization[intLevel](tensorFirst[intLevel], tensorSecond[intLevel], tensorFeaturesFirst[intLevel], tensorFeaturesSecond[intLevel], tensorFlow)
+			#print("lvl %d: %s" % (intLevel, str(tensorFlow.size())))
 		# end
 
 		# actually it should be factor 20.
 		# but somehow the output of this implementation is only half the size,
 		# that results in a scale up with a factor 2 already. so 10 is remaining
-		return tensorFlow * 10.0
+		return torch.nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)(tensorFlow * 10.0 * 2)
 	# end
 # end
 
